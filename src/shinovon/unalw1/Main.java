@@ -214,12 +214,12 @@ public class Main implements Runnable {
 
 	public static void main(String[] args) {
 		if (args.length > 0) {
-			System.out.println("UnALW1 v" + VERSION + " by shinovon, 2025");
+			System.out.println("AntiALW1 v" + VERSION + " by shinovon, 2025-2026");
 			System.out.println("J2ME advertising and payment engines removal tool");
 			System.out.println();
 			if (args[0].endsWith("-version")) return;
 			if (args[0].endsWith("-help")) {
-				System.out.println("Usage: java -jar unalw1.jar [options] <jar file or directory>"); 
+				System.out.println("Usage: java -jar antialw1.jar [options] <jar file or directory>"); 
 				System.out.println();
 				System.out.println("Where options are:");
 				System.out.println(" -outjar <jar file> Path to output jar");
@@ -373,10 +373,10 @@ public class Main implements Runnable {
 					outjar = outjar.substring(0, outjar.length() - 4) + "_unwrapped.jar";
 				}
 				
-				Path temp = Files.createTempFile("unalw1", ".jar");
+				Path temp = Files.createTempFile("antialw1", ".jar");
 				try {
 					try (ZipFile zipFile = new ZipFile(f.toFile())) {
-						if (zipFile.getEntry("UnALW1") != null) {
+						if (zipFile.getEntry("UnALW1") != null || zipFile.getEntry("AntiALW1") != null) {
 							logError("Jar file appears to be already patched, aborting.", false);
 							break run;
 						}
@@ -745,11 +745,7 @@ public class Main implements Runnable {
 														
 														ins.remove(n.getPrevious()); // pop ldc
 														ins.remove(n.getPrevious()); // pop getfield
-														if (replace == null) {
-															ins.set(n, new InsnNode(Opcodes.ACONST_NULL));
-														} else {
-															ins.set(n, new LdcInsnNode(replace));
-														}
+														ins.set(n, replace == null ? new InsnNode(Opcodes.ACONST_NULL) : new LdcInsnNode(replace));
 														log("Patched getAppProperty(" + ldc + ") to " + replace + " at " + className + '.' + mn.name + mn.desc);
 													}
 												}
@@ -872,11 +868,7 @@ public class Main implements Runnable {
 												
 												ins.remove(n.getPrevious()); // pop ldc
 												ins.remove(n.getPrevious()); // pop getfield
-												if (replace == null) {
-													ins.set(n, new InsnNode(Opcodes.ACONST_NULL));
-												} else {
-													ins.set(n, new LdcInsnNode(replace));
-												}
+												ins.set(n, new LdcInsnNode(replace));
 												log("Patched getAppProperty(" + ldc + ") to " + replace + " at " + className + '.' + mn.name + mn.desc);
 												mbizPatched = true;
 											}
@@ -927,10 +919,10 @@ public class Main implements Runnable {
 							}
 							
 							if (!noOutput) {
-								ZipEntry copy = new ZipEntry("UnALW1");
+								ZipEntry copy = new ZipEntry("AntiALW1");
 								copy.setCompressedSize(-1);
 								zipOut.putNextEntry(copy);
-								zipOut.write(("UnALW1 v" + VERSION + " (https://github.com/shinovon/UnALW1)").getBytes());
+								zipOut.write(("AntiALW1 v" + VERSION + " (https://github.com/shinovon/AntiALW1)").getBytes());
 								zipOut.closeEntry();
 							}
 						}
@@ -981,7 +973,7 @@ public class Main implements Runnable {
 					if (noOutput) break run;
 					
 					// preverify with proguard
-					Path tempConfig = Files.createTempFile("unalw1", ".cfg");
+					Path tempConfig = Files.createTempFile("antialw1", ".cfg");
 					try {
 						try (PrintStream ps = new PrintStream(new FileOutputStream(tempConfig.toFile()))) {
 							ps.println("-dontwarn");
@@ -1059,7 +1051,7 @@ public class Main implements Runnable {
 
 	void initializeUI() {
 		frame = new JFrame();
-		frame.setTitle("UnAWL1 v" + VERSION);
+		frame.setTitle("AntiALW1 v" + VERSION);
 		frame.setBounds(100, 100, 350, 536);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new GridLayout(0, 1, 0, 0));
