@@ -906,7 +906,7 @@ public class Main implements Runnable {
 							// add unvserv connector classes
 							if (vservConnectorPatched && !noOutput) {
 								log("Adding vServ wrapper classes", false);
-								try (ZipInputStream zipIn = new ZipInputStream("".getClass().getResourceAsStream("/vserv.jar"))) {
+								try (ZipInputStream zipIn = new ZipInputStream(getClass().getResourceAsStream("/vserv.jar"))) {
 									ZipEntry entry;
 									while ((entry = zipIn.getNextEntry()) != null) {
 										ZipEntry copy = new ZipEntry(entry);
