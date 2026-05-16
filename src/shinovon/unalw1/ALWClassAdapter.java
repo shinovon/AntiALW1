@@ -31,7 +31,7 @@ import org.objectweb.asm.Opcodes;
 public class ALWClassAdapter extends ClassVisitor {
 
 	private List<String[]> rename;
-	private String className;
+	private final String className;
 	private String superName;
 
 	public ALWClassAdapter(ClassVisitor visitor, String name) {

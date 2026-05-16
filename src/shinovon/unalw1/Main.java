@@ -121,7 +121,7 @@ public class Main implements Runnable {
 	};
 	
 	static Main inst;
-	
+
 	// state
 	public boolean alw1Patched;
 	public boolean vservConnectorPatched;
@@ -184,7 +184,7 @@ public class Main implements Runnable {
 	public boolean hasMbizglobalDat;
 	public String mbizglobalClass;
 	
-	Map<String, ClassNode> classNodes = new HashMap<String, ClassNode>();
+	Map<String, ClassNode> classNodes = new HashMap<>();
 
 	boolean running;
 	
@@ -196,7 +196,7 @@ public class Main implements Runnable {
 	private JTextField outField;
 	private static JTextArea textArea;
 	
-	private StringBuilder sb = new StringBuilder();
+	private final StringBuilder sb = new StringBuilder();
 	
 	// options
 	String proguard;
@@ -241,19 +241,26 @@ public class Main implements Runnable {
 			String key = null;
 			for (String s : args) {
 				if (key != null) {
-					if ("-in".equals(key)) {
+					switch (key) {
+					case "-in":
 						inst.target = s;
-					} else if ("-outjar".equals(key)) {
+						break;
+					case "-outjar":
 						inst.outjar = s;
-					} else if ("-outdir".equals(key)) {
+						break;
+					case "-outdir":
 						inst.outdir = s;
-					} else if ("-proguard".equals(key)) {
+						break;
+					case "-proguard":
 						inst.proguard = s;
-					} else if ("-libraryjars".equals(key)) {
+						break;
+					case "-libraryjars":
 						inst.libraryjars = s;
-					} else if ("-mode".equals(key)) {
+						break;
+					case "-mode":
 						inst.mode = s;
-					} else {
+						break;
+					default:
 						System.err.println("Unrecognized parameter: " + key);
 						System.exit(1);
 						return;
@@ -490,6 +497,7 @@ public class Main implements Runnable {
 											for (AbstractInsnNode n = ins.getFirst(); n != null; n = n.getNext()) {
 												if (n instanceof MethodInsnNode && ((MethodInsnNode) n).name.equals("startMainApp")) {
 													hasStartMainApp = true;
+													break;
 												}
 											}
 											
@@ -594,7 +602,7 @@ public class Main implements Runnable {
 												mn.instructions.add(new InsnNode(Opcodes.ARETURN));
 											}
 										} else if (("auto".equals(mode) || "m7".equals(mode))
-												 && m7Class != null && className.equals(m7Class)) {
+												 && className.equals(m7Class)) {
 											// m7: GCMIDlet
 											InsnList ins = mn.instructions;
 											boolean hasNameLdc = false,
@@ -695,7 +703,7 @@ public class Main implements Runnable {
 								String className = entry.getKey();
 								
 								// greystripe method 2
-								if (greystripeRunnerClass != null && className.equals(greystripeRunnerClass)) {
+								if (className.equals(greystripeRunnerClass)) {
 									if (!node.interfaces.contains("java/lang/Runnable") || node.interfaces.size() != 1) {
 										greystripeRunnerClass = null;
 									} else {
@@ -718,7 +726,7 @@ public class Main implements Runnable {
 										}
 									}
 								// gameloft canvas class
-								} else if (gloftCanvasClass != null && className.equals(gloftCanvasClass)) {
+								} else if (className.equals(gloftCanvasClass)) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
 										
@@ -838,7 +846,7 @@ public class Main implements Runnable {
 											}
 										}
 									}
-								} else if (mbizglobalClass != null && className.equals(mbizglobalClass)) {
+								} else if (className.equals(mbizglobalClass)) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
 										
@@ -847,7 +855,7 @@ public class Main implements Runnable {
 											// patch getAppProperty calls to remove dependency on jad
 											if (n.getOpcode() == Opcodes.INVOKEVIRTUAL && "getAppProperty".equals(((MethodInsnNode) n).name)) {
 												String ldc = (String) ((LdcInsnNode) n.getPrevious()).cst;
-												String replace = null;
+												String replace;
 												if ("Serial".equals(ldc)) {
 													replace = "TEST,MOBILE";
 												} else if ("SMSType".equals(ldc)) {
@@ -877,7 +885,7 @@ public class Main implements Runnable {
 								}
 								if (("auto".equals(mode) || "vserv".equals(mode))
 										&& (className.endsWith("VservManager") || className.endsWith("VservAd") || className.endsWith("VSERV_BCI_CLASS_000")
-										|| (vservClass != null && className.equals(vservClass)))) {
+										|| className.equals(vservClass))) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
 										
@@ -975,7 +983,7 @@ public class Main implements Runnable {
 					// preverify with proguard
 					Path tempConfig = Files.createTempFile("antialw1", ".cfg");
 					try {
-						try (PrintStream ps = new PrintStream(new FileOutputStream(tempConfig.toFile()))) {
+						try (PrintStream ps = new PrintStream(Files.newOutputStream(tempConfig))) {
 							ps.println("-dontwarn");
 							ps.println("-dontnote");
 							ps.println("-dontobfuscate");
@@ -992,7 +1000,7 @@ public class Main implements Runnable {
 							ps.println(escapeFileArg(Paths.get(outjar).toAbsolutePath().normalize().toString()));
 						}
 						
-						List<String> args = new ArrayList<String>();
+						List<String> args = new ArrayList<>();
 						args.add(Paths.get(System.getProperty("java.home")).resolve("bin").resolve("java").toString());
 						args.add("-jar");
 						args.add(proguard);
@@ -1148,7 +1156,7 @@ public class Main implements Runnable {
 		panel.add(panel_7);
 		panel_7.setLayout(new BorderLayout(0, 0));
 		
-		JComboBox<String> comboBox = new JComboBox<>();
+		final JComboBox<String> comboBox = new JComboBox<>();
 		comboBox.setModel(new DefaultComboBoxModel<String>(modeNames));
 		panel_7.add(comboBox);
 		
@@ -1227,7 +1235,7 @@ public class Main implements Runnable {
 							dtde.acceptDrop(dtde.getDropAction());
 							List<?> transferData = (List<?>) t.getTransferData(DataFlavor.javaFileListFlavor);
 							
-	                        if (transferData != null && transferData.size() > 0) {
+	                        if (transferData != null && transferData.size() != 0) {
 	                        	StringBuilder sb = new StringBuilder();
 	                        	for (Object s : transferData) {
 	                        		sb.append(s).append(File.pathSeparatorChar);
@@ -1251,8 +1259,8 @@ public class Main implements Runnable {
 	}
 	
 	public void resetState() {
-		// note: neep in sync with state variables
-		
+		// note: keep in sync with state variables
+
 		alw1Patched = false;
 		vservConnectorPatched = false;
 		inneractivePatched = false;
@@ -1320,7 +1328,7 @@ public class Main implements Runnable {
 	}
 	
 	private static String escapeFileArg(String s) {
-		StringBuffer sb = new StringBuffer("\'");
+		StringBuffer sb = new StringBuffer("'");
 		
 		for (char c : s.toCharArray()) {
 			if (c == '\'') {

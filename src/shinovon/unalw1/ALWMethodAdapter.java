@@ -26,11 +26,11 @@ import org.objectweb.asm.Opcodes;
 
 public class ALWMethodAdapter extends MethodVisitor {
 
-	private ALWClassAdapter classAdapter;
-	private String className;
-	private String superName;
-	private String name;
-	private String desc;
+	private final ALWClassAdapter classAdapter;
+	private final String className;
+	private final String superName;
+	private final String name;
+	private final String desc;
 	
 	private int greystripeCheck;
 	

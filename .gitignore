@@ -1,5 +1,8 @@
 /.settings/
 /bin/
+/out/
+*.class
+*.zip
 *.jar
 *.jad
 *.cfg
