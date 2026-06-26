@@ -848,17 +848,18 @@ public class Main implements Runnable {
 											}
 										}
 									}
-								} else if (className.equals(mbizglobalClass)) {
+								} else if (mbizglobalClass != null && (className.equals(mbizglobalClass) || mbizglobalClass.equals(node.superName))) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
 										
 										InsnList ins = mn.instructions;
 										for (AbstractInsnNode n : ins.toArray()) {
 											// patch getAppProperty calls to remove dependency on jad
-											if (n.getOpcode() == Opcodes.INVOKEVIRTUAL /*&& "getAppProperty".equals(((MethodInsnNode) n).name)*/ && "(Ljava/lang/String;)Ljava/lang/String;".equals(((MethodInsnNode) n).desc)) {
+											if (n.getOpcode() == Opcodes.INVOKEVIRTUAL /*&& "getAppProperty".equals(((MethodInsnNode) n).name)*/ && "(Ljava/lang/String;)Ljava/lang/String;".equals(((MethodInsnNode) n).desc)
+													&& n.getPrevious() instanceof LdcInsnNode) {
 												String ldc = (String) ((LdcInsnNode) n.getPrevious()).cst;
 												String replace;
-												if ("Serial".equals(ldc)) {
+												if ("Serial".equals(ldc) || "SERIAL".equals(ldc)) {
 													replace = "TEST,MOBILE";
 												} else if ("SMSType".equals(ldc) || "SMSTYPE".equals(ldc)) {
 													replace = "0";

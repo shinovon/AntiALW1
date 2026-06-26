@@ -240,7 +240,9 @@ public class ALWMethodAdapter extends MethodVisitor {
 		} else if (cst instanceof String && (cst.equals("/mbizglobal.dat") || ((String) cst).startsWith("/mbizglobal") && ((String) cst).endsWith(".dat"))) {
 			// mbizglobal
 			Main.inst.log("MBizGlobal string constant found: " + this.className + '.' + this.name + this.desc);
-			Main.inst.mbizglobalClass = className;
+			if (Main.inst.mbizglobalClass == null || "java/lang/Object".equals(superName)) {
+				Main.inst.mbizglobalClass = className;
+			}
 		}
 		super.visitLdcInsn(cst);
 	}
