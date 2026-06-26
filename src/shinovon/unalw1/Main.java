@@ -417,7 +417,8 @@ public class Main implements Runnable {
 						}
 						if ("auto".equals(mode) || "mbizglobal".equals(mode)) {
 							// mbizglobal: check for mbizglobal.dat resource
-							if (zipFile.getEntry("mbizglobal.dat") != null || zipFile.getEntry("/mbizglobal.dat") != null) {
+							if (zipFile.getEntry("mbizglobal.dat") != null || zipFile.getEntry("/mbizglobal.dat") != null
+									|| zipFile.getEntry("mbizglobal-info.dat") != null || zipFile.getEntry("/mbizglobal-info.dat") != null) {
 								hasMbizglobalDat = true;
 								log("Found mbizglobal.dat, assuming MBizGlobal");
 							}
