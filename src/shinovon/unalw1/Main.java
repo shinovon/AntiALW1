@@ -36,7 +36,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -83,7 +82,7 @@ import javax.swing.DefaultComboBoxModel;
 
 public class Main implements Runnable {
 	
-	public static final String VERSION = "9.2";
+	public static final String VERSION = "9.3";
 	
 	public static final String[] modes = {
 			"auto",
