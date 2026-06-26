@@ -860,7 +860,7 @@ public class Main implements Runnable {
 												String ldc = (String) ((LdcInsnNode) n.getPrevious()).cst;
 												String replace;
 												if ("Serial".equals(ldc) || "SERIAL".equals(ldc)) {
-													replace = "TEST,MOBILE";
+													replace = "TEST,MOBILE,asd";
 												} else if ("SMSType".equals(ldc) || "SMSTYPE".equals(ldc)) {
 													replace = "0";
 												} else if ("MAXSMSSEND".equals(ldc)) {
@@ -873,6 +873,17 @@ public class Main implements Runnable {
 													replace = "U600";
 												} else if ("Platform".equals(ldc) || "PLATFORM".equals(ldc)) {
 													replace = "GSM_ALLEUROPE";
+												} else if ("TNBVERSION".equals(ldc)) {
+													AbstractInsnNode t = n.getPrevious().getPrevious();
+													while (!(t instanceof LdcInsnNode && ((LdcInsnNode) t).cst instanceof String) && t != null) {
+														t = t.getPrevious();
+													}
+													if (t instanceof LdcInsnNode) {
+														replace = (String) ((LdcInsnNode) t).cst;
+													} else {
+														log("Failed to patch TNBVERSION check at " + className + '.' + mn.name + mn.desc);
+														continue;
+													}
 												} else {
 													continue;
 												}
@@ -883,7 +894,6 @@ public class Main implements Runnable {
 												log("Patched getAppProperty(" + ldc + ") to " + replace + " at " + className + '.' + mn.name + mn.desc);
 												mbizPatched = true;
 											}
-											// TODO patch TNBVERSION check
 										}
 									}
 								}
