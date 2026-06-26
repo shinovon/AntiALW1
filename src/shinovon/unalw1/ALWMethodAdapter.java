@@ -222,6 +222,11 @@ public class ALWMethodAdapter extends MethodVisitor {
 			Main.inst.log("Gameloft string constant found (wrapped game started): " + this.className + '.' + this.name + this.desc);
 			Main.inst.gloftCanvasClass = this.className;
 			Main.inst.gloftStartedFunc = this.name;
+		} else if (cst instanceof String && cst.equals("DEMOTIME")) {
+			// gameloft
+			Main.inst.log("Gameloft string constant found (demotime): " + this.className + '.' + this.name + this.desc);
+			if (Main.inst.gloftCanvasClass == null)
+				Main.inst.gloftCanvasClass = this.className;
 		} else if (cst instanceof String && (cst.equals("+lm") || cst.equals("Prefix: ["))
 				&& !this.name.equals("<init>")) {
 			// glomo

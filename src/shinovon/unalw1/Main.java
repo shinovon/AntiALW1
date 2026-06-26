@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.jar.Manifest;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -425,6 +426,30 @@ public class Main implements Runnable {
 							}
 						}
 						
+						ZipEntry manifestEntry = zipFile.getEntry("META-INF/MANIFEST.MF");
+						if (manifestEntry == null) {
+							manifestEntry = zipFile.getEntry("/META-INF/MANIFEST.MF");
+						}
+						if (manifestEntry == null) {
+							manifestEntry = zipFile.getEntry("META-INF/manifest.mf");
+						}
+						if (manifestEntry == null) {
+							manifestEntry = zipFile.getEntry("/META-INF/manifest.mf");
+						}
+						if (manifestEntry == null) {
+							manifestEntry = zipFile.getEntry("meta-inf/manifest.mf");
+						}
+						if (manifestEntry == null) {
+							manifestEntry = zipFile.getEntry("/meta-inf/manifest.mf");
+						}
+						
+						Manifest manifest = null;
+						try {
+							if (manifestEntry != null) {
+								manifest = new Manifest(zipFile.getInputStream(manifestEntry));
+							}
+						} catch (Exception ignored) {}
+						
 						try (ZipOutputStream zipOut = new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(temp)))) {
 							Enumeration<? extends ZipEntry> entries = zipFile.entries();
 							while (entries.hasMoreElements()) {
@@ -728,12 +753,12 @@ public class Main implements Runnable {
 										}
 									}
 								// gameloft canvas class
-								} else if (className.equals(gloftCanvasClass)) {
+								} else if (gloftCanvasClass != null && (className.equals(gloftCanvasClass) || gloftCanvasClass.equals(node.superName))) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
 										
 										mtd: {
-											if (mn.desc.equals("()Z")) {
+											if (mn.desc.equals("()Z") || mn.desc.equals("()I")) {
 												InsnList ins = mn.instructions;
 												for (AbstractInsnNode n : ins.toArray()) {
 													// patch getAppProperty calls to remove dependency on jad
@@ -747,7 +772,7 @@ public class Main implements Runnable {
 																|| "SMS-PhoneModel".equals(ldc)
 																|| "SMS-Profiles".equals(ldc)) {
 															replace = "0";
-														} else if ("SMS-DemoTime".equalsIgnoreCase(ldc)) {
+														} else if ("SMS-DemoTime".equalsIgnoreCase(ldc) || "DEMOTIME".equalsIgnoreCase(ldc)) {
 															replace = Integer.toString(Integer.MAX_VALUE);
 														} else {
 															continue;
@@ -848,14 +873,16 @@ public class Main implements Runnable {
 											}
 										}
 									}
-								} else if (mbizglobalClass != null && (className.equals(mbizglobalClass) || mbizglobalClass.equals(node.superName))) {
+								}
+								if (mbizglobalClass != null && (className.equals(mbizglobalClass) || mbizglobalClass.equals(node.superName))) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
 										
 										InsnList ins = mn.instructions;
 										for (AbstractInsnNode n : ins.toArray()) {
 											// patch getAppProperty calls to remove dependency on jad
-											if (n.getOpcode() == Opcodes.INVOKEVIRTUAL /*&& "getAppProperty".equals(((MethodInsnNode) n).name)*/ && "(Ljava/lang/String;)Ljava/lang/String;".equals(((MethodInsnNode) n).desc)
+											if (n instanceof MethodInsnNode
+													/*&& "getAppProperty".equals(((MethodInsnNode) n).name)*/ && "(Ljava/lang/String;)Ljava/lang/String;".equals(((MethodInsnNode) n).desc)
 													&& n.getPrevious() instanceof LdcInsnNode) {
 												String ldc = (String) ((LdcInsnNode) n.getPrevious()).cst;
 												String replace;
@@ -884,12 +911,28 @@ public class Main implements Runnable {
 														log("Failed to patch TNBVERSION check at " + className + '.' + mn.name + mn.desc);
 														continue;
 													}
+												} else if ("FVCODE".equals(ldc)) {
+													String s = "TEST,MOBILE,asd" + manifest.getMainAttributes().getValue("MIDlet-Version");
+													StringBuilder sb = new StringBuilder("01");
+													for (int i = 0; i < s.length(); i++) {
+														char c = s.charAt(i);
+														if (c >= 'a' && c <= 'z') {
+															c = (char) (((c - 'a' + 1) % 26) + 'a');
+														} else if (c >= 'A' && c <= 'Z') {
+															c = (char) (((c - 'A' + 1) % 26) + 'A');
+														} else if (c >= '0' && c <= '9') {
+															c = (char) (((c - '0' + 5) % 10) + '0');
+														}
+														sb.append(c);
+													}
+													replace = sb.toString();
 												} else {
 													continue;
 												}
-												
+
 												ins.remove(n.getPrevious()); // pop ldc
-												ins.remove(n.getPrevious()); // pop getfield
+												if (n.getOpcode() == Opcodes.INVOKEVIRTUAL)
+													ins.remove(n.getPrevious()); // pop getfield
 												ins.set(n, new LdcInsnNode(replace));
 												log("Patched getAppProperty(" + ldc + ") to " + replace + " at " + className + '.' + mn.name + mn.desc);
 												mbizPatched = true;
