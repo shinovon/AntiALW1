@@ -237,8 +237,8 @@ public class ALWMethodAdapter extends MethodVisitor {
 			// mobilerated
 			Main.inst.log("MobileRated string constant found: " + this.className + '.' + this.name + this.desc);
 			Main.inst.mobileratedClass = className;
-		} else if (cst instanceof String && cst.equals("/mbizglobal.dat")) {
-			// mobilerated
+		} else if (cst instanceof String && (cst.equals("/mbizglobal.dat") || ((String) cst).startsWith("/mbizglobal") && ((String) cst).endsWith(".dat"))) {
+			// mbizglobal
 			Main.inst.log("MBizGlobal string constant found: " + this.className + '.' + this.name + this.desc);
 			Main.inst.mbizglobalClass = className;
 		}

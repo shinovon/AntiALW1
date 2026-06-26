@@ -418,7 +418,8 @@ public class Main implements Runnable {
 						if ("auto".equals(mode) || "mbizglobal".equals(mode)) {
 							// mbizglobal: check for mbizglobal.dat resource
 							if (zipFile.getEntry("mbizglobal.dat") != null || zipFile.getEntry("/mbizglobal.dat") != null
-									|| zipFile.getEntry("mbizglobal-info.dat") != null || zipFile.getEntry("/mbizglobal-info.dat") != null) {
+									|| zipFile.getEntry("mbizglobal-info.dat") != null || zipFile.getEntry("/mbizglobal-info.dat") != null
+									|| zipFile.getEntry("mbizglobal-info-eto.dat") != null || zipFile.getEntry("/mbizglobal-info-eto.dat") != null) {
 								hasMbizglobalDat = true;
 								log("Found mbizglobal.dat, assuming MBizGlobal");
 							}
@@ -854,22 +855,22 @@ public class Main implements Runnable {
 										InsnList ins = mn.instructions;
 										for (AbstractInsnNode n : ins.toArray()) {
 											// patch getAppProperty calls to remove dependency on jad
-											if (n.getOpcode() == Opcodes.INVOKEVIRTUAL && "getAppProperty".equals(((MethodInsnNode) n).name)) {
+											if (n.getOpcode() == Opcodes.INVOKEVIRTUAL /*&& "getAppProperty".equals(((MethodInsnNode) n).name)*/ && "(Ljava/lang/String;)Ljava/lang/String;".equals(((MethodInsnNode) n).desc)) {
 												String ldc = (String) ((LdcInsnNode) n.getPrevious()).cst;
 												String replace;
 												if ("Serial".equals(ldc)) {
 													replace = "TEST,MOBILE";
-												} else if ("SMSType".equals(ldc)) {
+												} else if ("SMSType".equals(ldc) || "SMSTYPE".equals(ldc)) {
 													replace = "0";
 												} else if ("MAXSMSSEND".equals(ldc)) {
 													replace = "2";
-												} else if ("AutoPlatform".equals(ldc)) {
+												} else if ("AutoPlatform".equals(ldc) || "AUTOPLATFORM".equals(ldc)) {
 													replace = "on";
-												} else if ("FullVersion".equals(ldc)) {
+												} else if ("FullVersion".equals(ldc) || "FULLVERSION".equals(ldc)) {
 													replace = "true";
-												} else if ("Phone".equals(ldc)) {
+												} else if ("Phone".equals(ldc) || "PHONE".equals(ldc)) {
 													replace = "U600";
-												} else if ("Platform".equals(ldc)) {
+												} else if ("Platform".equals(ldc) || "PLATFORM".equals(ldc)) {
 													replace = "GSM_ALLEUROPE";
 												} else {
 													continue;
@@ -881,6 +882,7 @@ public class Main implements Runnable {
 												log("Patched getAppProperty(" + ldc + ") to " + replace + " at " + className + '.' + mn.name + mn.desc);
 												mbizPatched = true;
 											}
+											// TODO patch TNBVERSION check
 										}
 									}
 								}
