@@ -100,6 +100,7 @@ public class Main implements Runnable {
 			"sms",
 			"mobilerated",
 			"mbizglobal",
+			"jg",
 	};
 	
 	public static final String[] modeNames = {
@@ -117,7 +118,8 @@ public class Main implements Runnable {
 			"Sensible Mobiles",
 			"SMS",
 			"MobileRated",
-			"MbizGlobal"
+			"MbizGlobal",
+			"JG",
 	};
 	
 	static Main inst;
@@ -661,6 +663,34 @@ public class Main implements Runnable {
 												clearFunction(mn);
 												ins.add(new InsnNode(Opcodes.ICONST_1));
 												ins.add(new InsnNode(Opcodes.IRETURN));
+											}
+										} else if ((("auto".equals(mode) && "jg/DeckMIDlet".equals(className)) || "jg".equals(mode))
+												&& mn.name.equals("startApp") && mn.desc.equals("()V")) {
+											MethodNode start = null;
+											for (Object method : node.methods) {
+												if ("(IZ)V".equals(((MethodNode) method).desc)) {
+													start = (MethodNode) method;
+													break;
+												}
+											}
+											if (start != null) {
+												InsnList ins = mn.instructions;
+												for (AbstractInsnNode n = ins.getFirst(); n != null; n = n.getNext()) {
+													if (n instanceof TypeInsnNode) {
+														if (n.getOpcode() == Opcodes.NEW) {
+															AbstractInsnNode t;
+															while (!((t = n.getNext()) instanceof MethodInsnNode) || !"setCurrent".equals(((MethodInsnNode) t).name)) {
+																ins.remove(t);
+															}
+															ins.remove(t);
+															ins.insertBefore(n, new VarInsnNode(Opcodes.ALOAD, 0));
+															ins.insertBefore(n, new InsnNode(Opcodes.ICONST_1));
+															ins.insertBefore(n, new InsnNode(Opcodes.ICONST_0));
+															ins.set(n, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, start.name, start.desc));
+															log("Patched JG: " + className + '.' + start.name + start.desc);
+														}
+													}
+												}
 											}
 										}
 										

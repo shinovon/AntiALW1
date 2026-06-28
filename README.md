@@ -13,6 +13,7 @@ Payment engines, demo wrappers:
 - Infon Demotoolkit
 - MobileRated (Kalador)
 - Mbiz Global
+- JG
 
 Advertisement engines:
 - vServ
