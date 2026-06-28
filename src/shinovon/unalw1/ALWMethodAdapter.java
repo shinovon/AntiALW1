@@ -248,6 +248,10 @@ public class ALWMethodAdapter extends MethodVisitor {
 			if (Main.inst.mbizglobalClass == null || "java/lang/Object".equals(superName)) {
 				Main.inst.mbizglobalClass = className;
 			}
+		} else if (cst instanceof String && cst.equals("nolink") && "<init>".equals(name)) {
+			// digital chocolate
+			Main.inst.log("DC string constant found: " + this.className + '.' + this.name + this.desc);
+			Main.inst.dcFreeTrialClass = className;
 		}
 		super.visitLdcInsn(cst);
 	}

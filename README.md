@@ -14,6 +14,7 @@ Payment engines, demo wrappers:
 - MobileRated (Kalador)
 - Mbiz Global
 - JG
+- Digital Chocolate (only some games)
 
 Advertisement engines:
 - vServ

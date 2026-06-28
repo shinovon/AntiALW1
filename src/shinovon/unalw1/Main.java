@@ -72,6 +72,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -144,6 +145,8 @@ public class Main implements Runnable {
 	public boolean m7Patched;
 	public boolean mobileratedPatched;
 	public boolean mbizPatched;
+	public boolean jgPatched;
+	public boolean dcPatched;
 	
 	// greystripe
 	public String greystripeConnectionClass;
@@ -185,6 +188,9 @@ public class Main implements Runnable {
 	// mbizglobal
 	public boolean hasMbizglobalDat;
 	public String mbizglobalClass;
+	
+	// dc
+	public String dcFreeTrialClass;
 	
 	Map<String, ClassNode> classNodes = new HashMap<>();
 
@@ -677,9 +683,10 @@ public class Main implements Runnable {
 												InsnList ins = mn.instructions;
 												for (AbstractInsnNode n = ins.getFirst(); n != null; n = n.getNext()) {
 													if (n instanceof TypeInsnNode && n.getOpcode() == Opcodes.NEW) {
-														AbstractInsnNode t;
-														while (!((t = n.getNext()) instanceof MethodInsnNode) || !"setCurrent".equals(((MethodInsnNode) t).name)) {
+														AbstractInsnNode t = n.getNext();
+														while (t != null && (!(t instanceof MethodInsnNode) || !"setCurrent".equals(((MethodInsnNode) t).name))) {
 															ins.remove(t);
+															t = n.getNext();
 														}
 														ins.remove(t);
 														ins.insertBefore(n, new VarInsnNode(Opcodes.ALOAD, 0));
@@ -687,6 +694,7 @@ public class Main implements Runnable {
 														ins.insertBefore(n, new InsnNode(Opcodes.ICONST_0));
 														ins.set(n, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, start.name, start.desc));
 														log("Patched JG: " + className + '.' + start.name + start.desc);
+														jgPatched = true;
 														break;
 													}
 												}
@@ -901,7 +909,76 @@ public class Main implements Runnable {
 											}
 										}
 									}
+								} else if (className.equals(dcFreeTrialClass)) {
+									// digital chocolate: FreeTrial
+									for (Object m : node.methods) {
+										MethodNode mn = (MethodNode) m;
+										InsnList ins = mn.instructions;
+										
+										// int getLicenseMode()
+										if ("()I".equals(mn.desc)) {
+											for (AbstractInsnNode n : ins.toArray()) {
+												if (n.getOpcode() == Opcodes.IRETURN && n.getPrevious().getOpcode() == Opcodes.ICONST_4) {
+													ins.set(n.getPrevious(), new InsnNode(Opcodes.ICONST_2));
+													Main.inst.log("DC FreeTrial getLicenseMode() patched: " + className + '.' + mn.name + mn.desc);
+													dcPatched = true;
+													break;
+												}
+											}
+											continue;
+										}
+										
+										if ("<init>".equals(mn.name)) {
+											for (AbstractInsnNode n : ins.toArray()) {
+												// useDemo = url != null;
+												if (n.getOpcode() == Opcodes.PUTFIELD && dcFreeTrialClass.equals(((FieldInsnNode) n).owner) && "Z".equals(((FieldInsnNode) n).desc)) {
+													AbstractInsnNode t = n.getPrevious();
+													while (t != null && (!(t instanceof JumpInsnNode) || t.getOpcode() != Opcodes.IFNULL)) {
+														t = t.getPrevious();
+													}
+													
+													if (t != null && t.getNext().getOpcode() == Opcodes.ICONST_1) {
+														ins.set(t.getNext(), new InsnNode(Opcodes.ICONST_0));
+														Main.inst.log("DC FreeTrial useDemo patched: " + className + '.' + mn.name + mn.desc);
+														dcPatched = true;
+													}
+													break;
+												}
+											}
+											continue;
+										}
+										
+										// int logicUpdate(int)
+										if ("(I)I".equals(mn.desc)) {
+											for (AbstractInsnNode n : ins.toArray()) {
+												if (n instanceof MethodInsnNode && "destroyApp".equals(((MethodInsnNode) n).name)) {
+													clearFunction(mn);
+													ins.add(new InsnNode(Opcodes.ICONST_2));
+													ins.add(new InsnNode(Opcodes.IRETURN));
+													Main.inst.log("DC FreeTrial logicUpdate() patched: " + className + '.' + mn.name + mn.desc);
+													dcPatched = true;
+													break;
+												}
+											}
+											continue;
+										}
+										
+										// boolean setState(int)
+										if ("(I)Z".equals(mn.desc)) {
+											for (AbstractInsnNode n : ins.toArray()) {
+												if (n instanceof JumpInsnNode && n.getOpcode() == Opcodes.IF_ICMPNE) {
+													clearFunction(mn);
+													ins.add(new InsnNode(Opcodes.ICONST_0));
+													ins.add(new InsnNode(Opcodes.IRETURN));
+													Main.inst.log("DC FreeTrial setState() patched: " + className + '.' + mn.name + mn.desc);
+													dcPatched = true;
+													break;
+												}
+											}
+										}
+									}
 								}
+								
 								if (mbizglobalClass != null && (className.equals(mbizglobalClass) || mbizglobalClass.equals(node.superName))) {
 									for (Object m : node.methods) {
 										MethodNode mn = (MethodNode) m;
@@ -1038,7 +1115,9 @@ public class Main implements Runnable {
 							&& !ptaxcblPatched
 							&& !m7Patched
 							&& !mobileratedPatched
-							&& !mbizPatched) {
+							&& !mbizPatched
+							&& !jgPatched
+							&& !dcPatched) {
 						if (hasGsid) {
 							logError("Greystripe was detected, but could not patch it, please report to developer!", false);
 							failed = true;
@@ -1365,6 +1444,8 @@ public class Main implements Runnable {
 		m7Patched = false;
 		mobileratedPatched = false;
 		mbizPatched = false;
+		jgPatched = false;
+		dcPatched = false;
 		
 		greystripeConnectionClass = null;
 		greystripeRunnerClass = null;
@@ -1396,6 +1477,8 @@ public class Main implements Runnable {
 		
 		hasMbizglobalDat = false;
 		mbizglobalClass = null;
+		
+		dcFreeTrialClass = null;
 		
 		failed = false;
 		
