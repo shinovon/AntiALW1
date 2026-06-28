@@ -676,19 +676,18 @@ public class Main implements Runnable {
 											if (start != null) {
 												InsnList ins = mn.instructions;
 												for (AbstractInsnNode n = ins.getFirst(); n != null; n = n.getNext()) {
-													if (n instanceof TypeInsnNode) {
-														if (n.getOpcode() == Opcodes.NEW) {
-															AbstractInsnNode t;
-															while (!((t = n.getNext()) instanceof MethodInsnNode) || !"setCurrent".equals(((MethodInsnNode) t).name)) {
-																ins.remove(t);
-															}
+													if (n instanceof TypeInsnNode && n.getOpcode() == Opcodes.NEW) {
+														AbstractInsnNode t;
+														while (!((t = n.getNext()) instanceof MethodInsnNode) || !"setCurrent".equals(((MethodInsnNode) t).name)) {
 															ins.remove(t);
-															ins.insertBefore(n, new VarInsnNode(Opcodes.ALOAD, 0));
-															ins.insertBefore(n, new InsnNode(Opcodes.ICONST_1));
-															ins.insertBefore(n, new InsnNode(Opcodes.ICONST_0));
-															ins.set(n, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, start.name, start.desc));
-															log("Patched JG: " + className + '.' + start.name + start.desc);
 														}
+														ins.remove(t);
+														ins.insertBefore(n, new VarInsnNode(Opcodes.ALOAD, 0));
+														ins.insertBefore(n, new InsnNode(Opcodes.ICONST_1));
+														ins.insertBefore(n, new InsnNode(Opcodes.ICONST_0));
+														ins.set(n, new MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, start.name, start.desc));
+														log("Patched JG: " + className + '.' + start.name + start.desc);
+														break;
 													}
 												}
 											}
