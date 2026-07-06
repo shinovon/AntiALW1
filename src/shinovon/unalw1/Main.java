@@ -292,6 +292,20 @@ public class Main implements Runnable {
 				return;
 			}
 			
+			if (inst.proguard == null) {
+				Path p = Paths.get("proguard.jar").toAbsolutePath();
+				if (Files.exists(p)) {
+					inst.proguard = p.toString();
+				}
+			}
+			
+			if (inst.libraryjars == null) {
+				Path p = Paths.get("lib").toAbsolutePath();
+				if (Files.exists(p)) {
+					inst.libraryjars = p.toString();
+				}
+			}
+			
 			new Thread(inst).start();
 			return;
 		}
@@ -1284,7 +1298,14 @@ public class Main implements Runnable {
 		panel_4.add(lblNewLabel, BorderLayout.WEST);
 		
 		proguardField = new JTextField();
-		proguardField.setText("");
+		{
+			String proguardPreset = "";
+			Path p = Paths.get("proguard.jar").toAbsolutePath();
+			if (Files.exists(p)) {
+				proguardPreset = p.toString();
+			}
+			proguardField.setText(proguardPreset);
+		}
 		proguardField.setToolTipText("Path to proguard.jar, e.g: C:\\proguard-7.7.0\\lib\\proguard.jar");
 		panel_4.add(proguardField, BorderLayout.CENTER);
 		proguardField.setColumns(10);
@@ -1304,7 +1325,14 @@ public class Main implements Runnable {
 		panel_5.add(lblNewLabel_1, BorderLayout.WEST);
 		
 		libField = new JTextField();
-		libField.setText("");
+		{
+			String libPreset = "";
+			Path p = Paths.get("lib").toAbsolutePath();
+			if (Files.isDirectory(p)) {
+				libPreset = p.toString();
+			}
+			libField.setText(libPreset);
+		}
 		libField.setToolTipText("Path to folder with MIDP libraries, e.g: C:\\Nokia\\Devices\\S40_5th_Edition_SDK\\lib");
 		panel_5.add(libField, BorderLayout.CENTER);
 		libField.setColumns(10);
@@ -1337,7 +1365,9 @@ public class Main implements Runnable {
 		openBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (running) return;
-				target = inField.getText();
+				if (((String) (target = inField.getText())).trim().isEmpty()) {
+					return;
+				}
 				String s = outField.getText();
 				try {
 					if (s.trim().isEmpty()) {
