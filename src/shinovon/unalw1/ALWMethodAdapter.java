@@ -184,6 +184,17 @@ public class ALWMethodAdapter extends MethodVisitor {
 			super.visitLdcInsn("off");
 			Main.inst.gloftPatched = true;
 			return;
+		} else if (("auto".equals(Main.inst.mode) || "gloft".equals(Main.inst.mode))
+				&& name.equals("getAppProperty") && desc.equals("(Ljava/lang/String;)Ljava/lang/String;")
+				&& "SMS-ConfigFromJad".equals(lastLdc)
+				&& "()V".equals(this.desc)) {
+			// gameloft sms wrapper
+			Main.inst.log("Found getAppProperty(SMS-ConfigFromJad): " + className + '.' + this.name + this.desc);
+			super.visitInsn(Opcodes.POP);
+			super.visitInsn(Opcodes.POP);
+			super.visitLdcInsn("0");
+			Main.inst.smsWrapperMIDlet = this.className;
+			return;
 		}
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}

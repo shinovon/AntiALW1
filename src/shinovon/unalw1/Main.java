@@ -165,6 +165,7 @@ public class Main implements Runnable {
 	public String gloftTimeEndedFunc;
 	public String gloftStartedFunc;
 	public boolean hasDataIGP;
+	public String smsWrapperMIDlet;
 	
 	// vserv
 	public String startMainAppClass;
@@ -991,6 +992,21 @@ public class Main implements Runnable {
 											}
 										}
 									}
+								} else if (("auto".equals(mode) || "gloft".equals(mode))
+										 && smsWrapperMIDlet != null && smsWrapperMIDlet.equals(className)) {
+									while (true) {
+										boolean found = false;
+										for (Object m : node.methods) {
+											MethodNode mn = (MethodNode) m;
+											if ("startApp".equals(mn.name) || "destroyApp".equals(mn.name) || "pauseApp".equals(mn.name)) {
+												Main.inst.log("SMS wrapper removed: " + className + '.' + mn.name + mn.desc);
+												node.methods.remove(m);
+												found = true;
+												break;
+											}
+										}
+										if (!found) break;
+									}
 								}
 								
 								if (mbizglobalClass != null && (className.equals(mbizglobalClass) || mbizglobalClass.equals(node.superName))) {
@@ -1491,6 +1507,7 @@ public class Main implements Runnable {
 		gloftTimeEndedFunc = null;
 		gloftStartedFunc = null;
 		hasDataIGP = false;
+		smsWrapperMIDlet = null;
 		
 		startMainAppClass = null;
 		vservClass = null;
