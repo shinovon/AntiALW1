@@ -161,6 +161,8 @@ public class ALWMethodAdapter extends MethodVisitor {
 			// TODO check if startMainApp exists
 			Main.inst.log("Patched sm: " + name + desc + " in " + className + '.' + this.name + this.desc);
 			super.visitInsn(Opcodes.POP);
+//			super.visitVarInsn(Opcodes.ALOAD, 0);
+//			super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "constructorMainApp", "()V");
 			super.visitVarInsn(Opcodes.ALOAD, 0);
 			super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "startMainApp", "()V");
 			Main.inst.smPatched = true;

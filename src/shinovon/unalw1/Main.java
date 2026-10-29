@@ -542,11 +542,13 @@ public class Main implements Runnable {
 												&& "startApp".equals(mn.name) && "()V".equals(mn.desc)) {
 											
 											InsnList ins = mn.instructions;
-											boolean hasStartMainApp = false;
+											boolean hasStartMainApp = false, hasConstructorMainApp = false;
 											for (AbstractInsnNode n = ins.getFirst(); n != null; n = n.getNext()) {
 												if (n instanceof MethodInsnNode && ((MethodInsnNode) n).name.equals("startMainApp")) {
 													hasStartMainApp = true;
-													break;
+												}
+												if (n instanceof MethodInsnNode && ((MethodInsnNode) n).name.equals("constructorMainApp")) {
+													hasConstructorMainApp = true;
 												}
 											}
 											
@@ -559,6 +561,10 @@ public class Main implements Runnable {
 												ins.add(new LdcInsnNode(500L));
 												ins.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/lang/Thread", "sleep", "(J)V"));
 												ins.add(new VarInsnNode(Opcodes.ALOAD, 0));
+												if (hasConstructorMainApp) {
+													ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, "constructorMainApp", "()V"));
+													ins.add(new VarInsnNode(Opcodes.ALOAD, 0));
+												}
 												ins.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, className, "startMainApp", "()V"));
 												ins.add(new InsnNode(Opcodes.RETURN));
 											}
