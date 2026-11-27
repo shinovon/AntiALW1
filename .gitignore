@@ -11,7 +11,7 @@
 /bin/
 
 /.idea/**
-!/.idea/arifacts
+!/.idea/artifacts
 !/.idea/artifacts/**
 !/.idea/modules.xml
 !/.idea/misc.xml
