@@ -9,10 +9,10 @@
 
 /.settings/
 /bin/
-/out/
 
 /.idea/**
 !/.idea/arifacts
 !/.idea/artifacts/**
 !/.idea/modules.xml
 !/.idea/misc.xml
+/out/
