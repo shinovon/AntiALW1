@@ -15,6 +15,7 @@ Payment engines, demo wrappers:
 - Mbiz Global
 - JG
 - Digital Chocolate (only some games)
+- Nokia In-App
 
 Advertisement engines:
 - vServ

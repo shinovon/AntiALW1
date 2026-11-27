@@ -192,6 +192,9 @@ public class Main implements Runnable {
 	
 	// dc
 	public String dcFreeTrialClass;
+
+	// nokia payment
+	public boolean hasNokiaPayment;
 	
 	Map<String, ClassNode> classNodes = new HashMap<>();
 
@@ -447,6 +450,9 @@ public class Main implements Runnable {
 								log("Found mbizglobal.dat, assuming MBizGlobal");
 							}
 						}
+						if (hasNokiaPayment = zipFile.getEntry("com/nokia/payment/NPayManager.class") != null) {
+							log("Found com.nokia.payment");
+						}
 						
 						ZipEntry manifestEntry = zipFile.getEntry("META-INF/MANIFEST.MF");
 						if (manifestEntry == null) {
@@ -483,6 +489,13 @@ public class Main implements Runnable {
 										logError("Jar file appears to be already patched, aborting.", false);
 										break run;
 									}
+
+									if (className.startsWith("com/nokia/payment/")) {
+										hasNokiaPayment = true;
+										log("Skipping " + name);
+										continue;
+									}
+
 									if (verbose) log("Transforming " + name);
 									
 									ClassReader classReader = new ClassReader(zipFile.getInputStream(entry));
@@ -1108,18 +1121,32 @@ public class Main implements Runnable {
 								zipOut.write(classWriter.toByteArray());
 								zipOut.closeEntry();
 							}
-							
-							// add unvserv connector classes
-							if (vservConnectorPatched && !noOutput) {
-								log("Adding vServ wrapper classes", false);
-								try (ZipInputStream zipIn = new ZipInputStream(getClass().getResourceAsStream("/vserv.jar"))) {
-									ZipEntry entry;
-									while ((entry = zipIn.getNextEntry()) != null) {
-										ZipEntry copy = new ZipEntry(entry);
-										copy.setCompressedSize(-1);
-										zipOut.putNextEntry(copy);
-										write(zipOut, zipIn);
-										zipOut.closeEntry();
+
+							if (!noOutput) {
+								// add unvserv connector classes
+								if (vservConnectorPatched) {
+									log("Adding vServ wrapper classes", false);
+									try (ZipInputStream zipIn = new ZipInputStream(getClass().getResourceAsStream("/vserv.jar"))) {
+										ZipEntry entry;
+										while ((entry = zipIn.getNextEntry()) != null) {
+											ZipEntry copy = new ZipEntry(entry);
+											copy.setCompressedSize(-1);
+											zipOut.putNextEntry(copy);
+											write(zipOut, zipIn);
+											zipOut.closeEntry();
+										}
+									}
+								}
+								if (hasNokiaPayment) {
+									try (ZipInputStream zipIn = new ZipInputStream(getClass().getResourceAsStream("/nokia.jar"))) {
+										ZipEntry entry;
+										while ((entry = zipIn.getNextEntry()) != null) {
+											ZipEntry copy = new ZipEntry(entry);
+											copy.setCompressedSize(-1);
+											zipOut.putNextEntry(copy);
+											write(zipOut, zipIn);
+											zipOut.closeEntry();
+										}
 									}
 								}
 							}
@@ -1532,6 +1559,8 @@ public class Main implements Runnable {
 		mbizglobalClass = null;
 		
 		dcFreeTrialClass = null;
+
+		hasNokiaPayment = false;
 		
 		failed = false;
 		
